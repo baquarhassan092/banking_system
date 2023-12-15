@@ -1,0 +1,468 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <fstream>
+#include<typeinfo>
+using namespace std;
+
+vector<int> v1;
+
+// Function to check if a number is a 10-digit integer
+bool is10DigitInteger(int num)
+{
+    int count = 0;
+    int x = num;
+    while (x)
+    {
+        x = x / 10;
+        ++count;
+    }
+    return count == 10;
+}
+
+// Function to check if a number is an integer
+bool isInteger(float number)
+{
+    return typeid(number) == typeid(int);
+}
+bool checking_dummy(int ac_no)
+{
+    vector <int> :: iterator it;
+    it = v1.begin();
+    for( ; it != v1.end() ; it++)
+    {
+      if( (*it) == ac_no)
+        return true;
+    }
+    return false;
+}
+
+class Bank
+{
+private:
+    int account_no;
+    string account_holder;
+    float balance;
+    int year;
+
+public:
+    void fill_details(int, string, float, int);
+    void get_data();
+    int get_account_no();
+    void updateaccount_balancedep(float);
+    void updateaccount_balancewith(float);
+    void edit();
+    void rec_edit();
+    float get_balance();
+};
+
+void Bank::fill_details(int ac_no, string nam, float bal, int yr)
+{
+    v1.push_back(ac_no);
+    account_no = ac_no;
+    account_holder = nam;
+    balance = bal;
+    year = yr;
+}
+
+void Bank::get_data()
+{
+    cout << "account_no:" << account_no << endl;
+    cout << "\"account_holder\":" << account_holder << endl;
+    cout << "\"avl_balance\":" << balance << endl;
+    cout << "\"year of opening\":" << year;
+    cout << endl;
+}
+
+int Bank::get_account_no()
+{
+    return account_no;
+}
+
+void Bank::updateaccount_balancedep(float amount)
+{
+    cout << "past_balance:$" << balance << endl;
+    balance = balance + amount;
+    cout << "successfully deposited" << endl
+         << "currentbalance:$" << balance << endl;
+}
+
+void Bank::updateaccount_balancewith(float amount)
+{
+    float limit = amount + 500;
+    if (amount >= 500)
+    {
+        if (balance - amount >= 500)
+        {
+            cout << "past_balance:$" << balance << endl;
+            balance = balance - amount;
+            cout << "successfully withdraw" << endl
+                 << "currentbalance:$" << balance << endl;
+        }
+        else
+        {
+            cout << "not possible to withdraw : at least your account consists $"
+                 << limit << endl;
+            cout << "currentbalance:$" << balance << endl;
+        }
+    }
+    else
+    {
+        cout << "for withdrawing: at least amount 500";
+    }
+}
+
+void Bank::rec_edit()
+{
+    int choice;
+    string name;
+    int ac_no, yr;
+
+    cout << "Which do you want to edit:" << endl;
+    cout << "1. Edit name\n2. Edit year_of_opening\n";
+    cin >> choice;
+    cin.ignore(); // Consume the newline character left in the input buffer
+
+    switch (choice)
+    {
+    case 1:
+        cout << "Enter the new name of the account holder: ";
+        getline(cin, name);
+        account_holder = name;
+        break;
+
+    case 2:
+        cout << "Enter the new year of opening: ";
+        cin >> yr;
+        year = yr;
+        break;
+    default:
+        cout << "Invalid choice, please retry!" << endl;
+    }
+}
+
+void Bank::edit()
+{
+    string s;
+
+    while (true)
+    {
+        cout << "Do you want to edit? (yes/no): ";
+        cin >> s;
+
+        if (s == "yes")
+        {
+            rec_edit();
+        }
+        else if (s == "no")
+        {
+            break;
+        }
+        else
+        {
+            cout << "Invalid input. Please enter 'yes' or 'no'." << endl;
+        }
+    }
+}
+
+float Bank::get_balance()
+{
+    return balance;
+}
+
+struct node
+{
+    Bank item;
+    node *next;
+};
+
+class hash_table
+{
+private:
+    int capacity;
+    node **hasptr;
+
+public:
+    hash_table();
+    void create_hash_table(int);
+    int hash_function(int);
+    void insert_details(int, string, float, int);
+    void search_data(int);
+    void deposit(int, float);
+    void withdraw(int, float);
+    void editaccountdetials(int);
+    void GETbalance(int);
+    void Showdata();
+    ~hash_table();
+    void storedata();
+    void viewall();
+};
+
+hash_table::hash_table()
+{
+    capacity = 0;
+    hasptr = nullptr;
+}
+
+void hash_table::create_hash_table(int cap)
+{
+    capacity = cap;
+    hasptr = new node *[capacity];
+    for (int i = 0; i < capacity; i++)
+    {
+        hasptr[i] = nullptr;
+    }
+}
+
+void hash_table::GETbalance(int ac_no)
+{
+    try
+    {
+        if (ac_no < 0 || !is10DigitInteger(ac_no))
+        {
+            throw 1; // Invalid account number (negative or not a 10-digit integer).
+        }
+        int index = hash_function(ac_no);
+        node *start = hasptr[index];
+        while (start != nullptr)
+        {
+            if ((start->item).get_account_no() == ac_no)
+            {
+                float amount = (start->item).get_balance();
+                cout << "avl_balance:" << amount << endl;
+                return;
+            }
+            start = start->next;
+        }
+        cout << "Data is not found in the list of the bank. Enter choice again" << endl;
+    }
+    catch (int e)
+    {
+        cout << "Invalid input!! : Enter choice again" << endl;
+    }
+}
+
+int hash_table::hash_function(int ac_no)
+{
+    return (ac_no % capacity);
+}
+
+void hash_table::insert_details(int ac_no, string nam, float bal, int yrs)
+{
+    int index = hash_function(ac_no);
+    node *n = new node;
+    (n->item).fill_details(ac_no, nam, bal, yrs);
+    if (hasptr[index] == nullptr)
+    {
+        n->next = nullptr;
+        hasptr[index] = n;
+    }
+    else
+    {
+        n->next = hasptr[index];
+        hasptr[index] = n;
+    }
+}
+
+void hash_table::search_data(int ac_no)
+{
+    try
+    {
+        if (ac_no < 0 || !is10DigitInteger(ac_no))
+        {
+            throw 1; // Invalid account number (negative or not a 10-digit integer).
+        }
+        int index = hash_function(ac_no);
+        node *start = hasptr[index];
+        while (start != nullptr)
+        {
+            if ((start->item).get_account_no() == ac_no)
+            {
+                (start->item).get_data();
+                return;
+            }
+            start = start->next;
+        }
+        cout << "Data is not found in the list of the bank. Enter your choice again" << endl;
+    }
+    catch (int e)
+    {
+        cout << "Invalid input!! : Enter your choice again" << endl;
+    }
+}
+
+void hash_table::deposit(int ac_no, float amount)
+{
+    int index = hash_function(ac_no);
+    node *start = hasptr[index];
+    while (start != nullptr)
+    {
+        if ((start->item).get_account_no() == ac_no)
+        {
+            (start->item).updateaccount_balancedep(amount);
+            return;
+        }
+        start = start->next;
+    }
+    cout << "Data is not found in the list of the bank. Enter choice again" << endl;
+}
+
+void hash_table::withdraw(int ac_no, float amount)
+{
+    int index = hash_function(ac_no);
+    node *start = hasptr[index];
+    while (start != nullptr)
+    {
+        if ((start->item).get_account_no() == ac_no)
+        {
+            (start->item).updateaccount_balancewith(amount);
+            return;
+        }
+        start = start->next;
+    }
+    cout << "Data is not found in the list of the bank. Enter choice again" << endl;
+}
+
+void hash_table::editaccountdetials(int ac_no)
+{
+    try
+    {
+        if (ac_no < 0 || !is10DigitInteger(ac_no))
+        {
+            throw 1; // Invalid account number (negative or not a 10-digit integer).
+        }
+        int index = hash_function(ac_no);
+        node *start = hasptr[index];
+        while (start != nullptr)
+        {
+            if ((start->item).get_account_no() == ac_no)
+            {
+                (start->item).edit();
+                return;
+            }
+            start = start->next;
+        }
+        cout << "Data is not found in the list of the bank. Enter choice again" << endl;
+    }
+    catch (int e)
+    {
+        cout << "Invalid input!! : Enter choice again" << endl;
+    }
+}
+
+void hash_table::viewall()
+{
+    ifstream fin;
+    fin.open("bank.notepad", ios::in);
+    while (fin.read((char *)this, sizeof(*this)))
+    {
+        Showdata();
+    }
+    fin.close();
+}
+
+void hash_table::storedata()
+{
+    ofstream fout;
+    fout.open("bank.notepad", ios::app);
+    fout.write((char *)this, sizeof(*this));
+    fout.close();
+}
+
+hash_table::~hash_table()
+{
+    for (int i = 0; i < capacity; i++)
+    {
+        node *current = hasptr[i];
+        while (current != nullptr)
+        {
+            node *temp = current;
+            current = current->next;
+            delete temp;
+        }
+    }
+    delete[] hasptr;
+}
+
+void hash_table::Showdata()
+{
+    // Implement the function to display data from the file
+}
+
+int main()
+{
+    int choice;
+    hash_table HT;
+    string name;
+    int ac_no, yr;
+    float deposit;
+
+    HT.create_hash_table(20);
+    cout << "WELCOME TO CANARA BANK" << endl;
+    cout << "1. Create Account\n2. Edit Account Details\n3. Withdraw\n4. Deposit\n5. View Account Details\n6. Review Account Balance\n7. Exit\n";
+
+    while (true)
+    {
+        cin >> choice;
+        cin.ignore(); // Consume the newline character left in the input buffer
+
+        switch (choice)
+        {
+        case 1:
+            cout << "Enter name:" << endl;
+            getline(cin, name);
+            cout << "Enter account number (10 digits, starting with non-zero digit):" << endl;
+            cin >> ac_no;
+            if (ac_no < 0 || !is10DigitInteger(ac_no))
+            {
+                throw 1; // Invalid account number (negative or not a 10-digit integer).
+            }
+            if (checking_dummy(ac_no))
+                throw 3;
+            cout << "Enter initial deposit amount:" << endl;
+            cin >> deposit;
+            cout << "Enter year of opening:" << endl;
+            if (deposit < 0)
+            {
+                throw 2; // Invalid balance (negative).
+            }
+            cin >> yr;
+            HT.insert_details(ac_no, name, deposit, yr);
+            HT.storedata();
+            break;
+        case 2:
+            cout << "Enter an account number:" << endl;
+            cin >> ac_no;
+            HT.editaccountdetials(ac_no);
+            break;
+        case 3:
+            cout << "Enter an account number:" << endl;
+            cin >> ac_no;
+            cout << "Enter the amount to withdraw:" << endl;
+            cin >> deposit;
+            HT.withdraw(ac_no, deposit);
+            break;
+        case 4:
+            cout << "Enter an account number:" << endl;
+            cin >> ac_no;
+            cout << "Enter the amount to deposit:" << endl;
+            cin >> deposit;
+            HT.deposit(ac_no, deposit);
+            break;
+        case 5:
+            cout << "Enter an account number:" << endl;
+            cin >> ac_no;
+            HT.search_data(ac_no);
+            break;
+        case 6:
+            cout << "Enter an account number:" << endl;
+            cin >> ac_no;
+            HT.GETbalance(ac_no);
+            break;
+        default:
+            HT.viewall();
+        }
+    }
+
+    return 0;
+}
